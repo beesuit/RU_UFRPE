@@ -87,7 +87,7 @@ public class MainActivity extends Activity implements OnTabChangeListener{
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
+        
         getMenuInflater().inflate(R.menu.main, menu);
         //MenuItem a = (MenuItem) findViewById(R.id.Atualizar);
         //a.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
@@ -99,12 +99,7 @@ public class MainActivity extends Activity implements OnTabChangeListener{
     public boolean onOptionsItemSelected(MenuItem item) {
     	
             switch(item.getItemId()) {
-            /*
-             * Typically, an application registers automatically, so options
-             * below are disabled. Uncomment them if you want to manually
-             * register or unregister the device (you will also need to
-             * uncomment the equivalent options on options_menu.xml).
-             */
+            
 
             case R.id.Atualizar:
                     
@@ -224,7 +219,7 @@ public class MainActivity extends Activity implements OnTabChangeListener{
 	}
     
     public void onClick() {
-        DownloadWebPageTask task = new DownloadWebPageTask();
+        GetFromSheetTask task = new GetFromSheetTask();
         task.execute();
 
       }
@@ -303,15 +298,15 @@ public class MainActivity extends Activity implements OnTabChangeListener{
     	prefEditor.commit();
     }
     
-    private class DownloadWebPageTask extends AsyncTask<Void, Void, JSONArray> {
-    	protected final ProgressDialog a = new ProgressDialog(MainActivity.this);
+    private class GetFromSheetTask extends AsyncTask<Void, Void, JSONArray> {
+    	protected final ProgressDialog atualizando = new ProgressDialog(MainActivity.this);
     	protected Exception exception = null;
     	
     	@Override
     	protected void onPreExecute(){
-    		a.setMessage("Atualizando...");
-            a.setCancelable(false);
-            a.show();
+    		atualizando.setMessage("Atualizando...");
+            atualizando.setCancelable(false);
+            atualizando.show();
     	}
     	
     	@Override
@@ -348,8 +343,8 @@ public class MainActivity extends Activity implements OnTabChangeListener{
         protected void onPostExecute(JSONArray objects) {
     		
     		if (exception != null){
-    			if (a.isShowing()) {
-                    a.dismiss();
+    			if (atualizando.isShowing()) {
+                    atualizando.dismiss();
     			}
     			
     			Toast.makeText(MainActivity.this, "Sem Conexão", Toast.LENGTH_LONG).show();
@@ -400,9 +395,10 @@ public class MainActivity extends Activity implements OnTabChangeListener{
         				e.printStackTrace();
         			}
             }
-        		if (a.isShowing()) {
-                    a.dismiss();
+        		if (atualizando.isShowing()) {
+                    atualizando.dismiss();
     			}
+        		Toast.makeText(MainActivity.this, "Atualizado", Toast.LENGTH_LONG).show();
         		setAdapters();
     		}
     		
