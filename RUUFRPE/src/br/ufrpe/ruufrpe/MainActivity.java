@@ -23,6 +23,7 @@ import android.os.Bundle;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -37,6 +38,7 @@ import android.widget.TabHost;
 import android.widget.TabHost.OnTabChangeListener;
 import android.widget.TabHost.TabSpec;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends Activity implements OnTabChangeListener{
 	
@@ -245,12 +247,30 @@ public class MainActivity extends Activity implements OnTabChangeListener{
 				quintaAlmoco.add(session.getString("quinta"));
 				sextaAlmoco.add(session.getString("sexta"));
 				
-				nomesJantar.add(session.getString("nomesjantar"));
-				segundaJantar.add(session.getString("segundaj"));
-				tercaJantar.add(session.getString("tercaj"));
-				quartaJantar.add(session.getString("quartaj"));
-				quintaJantar.add(session.getString("quintaj"));
-				sextaJantar.add(session.getString("sextaj"));
+				if (session.has("nomesjantar")){
+					nomesJantar.add(session.getString("nomesjantar"));
+				}
+				
+				if (session.has("segundaj")){
+					segundaJantar.add(session.getString("segundaj"));	
+				}
+				
+				if (session.has("tercaj")){
+					tercaJantar.add(session.getString("tercaj"));	
+				}
+				
+				if (session.has("quartaj")){
+					quartaJantar.add(session.getString("quartaj"));	
+				}
+
+				if (session.has("quintaj")){
+					quintaJantar.add(session.getString("quintaj"));
+				}
+
+				if (session.has("sextaj")){
+					sextaJantar.add(session.getString("sextaj"));
+				}
+
 				
 			}
     	}
@@ -285,6 +305,7 @@ public class MainActivity extends Activity implements OnTabChangeListener{
     
     private class DownloadWebPageTask extends AsyncTask<Void, Void, JSONArray> {
     	protected final ProgressDialog a = new ProgressDialog(MainActivity.this);
+    	protected Exception exception = null;
     	
     	@Override
     	protected void onPreExecute(){
@@ -296,6 +317,7 @@ public class MainActivity extends Activity implements OnTabChangeListener{
     	@Override
     	protected JSONArray doInBackground(Void... params) {
     		JSONArray objects = null;
+    		
     		
     		try{
     		
@@ -312,50 +334,80 @@ public class MainActivity extends Activity implements OnTabChangeListener{
                         
                         }
     		}
-    		catch(UnknownHostException e){
-    			e.printStackTrace();
-    		}
     		
     		catch(Exception e){
+    			exception = e;
     			e.printStackTrace();
+    			return null;
+    			
     		}
         return objects;
     		
     }
     	@Override
         protected void onPostExecute(JSONArray objects) {
-    		clearArrays();
-    		for (int i = 0; i < objects.length(); i++) {
-    			try{
-    				
-    			
-    				JSONObject session = objects.getJSONObject(i);
-    				
-    				nomesAlmoco.add(session.getString("nomesalmoco"));
-    				segundaAlmoco.add(session.getString("segunda"));
-    				tercaAlmoco.add(session.getString("terca"));
-    				quartaAlmoco.add(session.getString("quarta"));
-    				quintaAlmoco.add(session.getString("quinta"));
-    				sextaAlmoco.add(session.getString("sexta"));
-    				
-    				nomesJantar.add(session.getString("nomesjantar"));
-    				segundaJantar.add(session.getString("segundaj"));
-    				tercaJantar.add(session.getString("tercaj"));
-    				quartaJantar.add(session.getString("quartaj"));
-    				quintaJantar.add(session.getString("quintaj"));
-    				sextaJantar.add(session.getString("sextaj"));
-    			}
-    			
     		
-    			catch(Exception e){
-    				e.printStackTrace();
+    		if (exception != null){
+    			if (a.isShowing()) {
+                    a.dismiss();
     			}
-        }
-    		setAdapters();
-    		if (a.isShowing()) {
-                a.dismiss();
+    			
+    			Toast.makeText(MainActivity.this, "Sem Conexão", Toast.LENGTH_LONG).show();
+    		}
+    		else{
+    			clearArrays();
+        		for (int i = 0; i < objects.length(); i++) {
+        			try{
+        				
+        			
+        				JSONObject session = objects.getJSONObject(i);
+        				
+        				nomesAlmoco.add(session.getString("nomesalmoco"));
+        				segundaAlmoco.add(session.getString("segunda"));
+        				tercaAlmoco.add(session.getString("terca"));
+        				quartaAlmoco.add(session.getString("quarta"));
+        				quintaAlmoco.add(session.getString("quinta"));
+        				sextaAlmoco.add(session.getString("sexta"));
+        				
+        				if (session.has("nomesjantar")){
+        					nomesJantar.add(session.getString("nomesjantar"));
+        				}
+        				
+        				if (session.has("segundaj")){
+        					segundaJantar.add(session.getString("segundaj"));	
+        				}
+        				
+        				if (session.has("tercaj")){
+        					tercaJantar.add(session.getString("tercaj"));	
+        				}
+        				
+        				if (session.has("quartaj")){
+        					quartaJantar.add(session.getString("quartaj"));	
+        				}
 
+        				if (session.has("quintaj")){
+        					quintaJantar.add(session.getString("quintaj"));
+        				}
+
+        				if (session.has("sextaj")){
+        					sextaJantar.add(session.getString("sextaj"));
+        				}
+        				
+        			}
+        			
+        		
+        			catch(Exception e){
+        				e.printStackTrace();
+        			}
             }
+        		if (a.isShowing()) {
+                    a.dismiss();
+    			}
+        		setAdapters();
+    		}
+    		
+    		
+    		
       }
     }
 }
