@@ -26,6 +26,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.util.Log;
 import android.view.Menu;
@@ -45,6 +46,7 @@ public class MainActivity extends Activity implements OnTabChangeListener{
 	private TabHost tabsAlmoco;
 	private TabHost tabsJantar;
 	private TabHost tabsAJ;
+	GetFromSheetTask task;
 	
 	ArrayList<String> nomesAlmoco = new ArrayList<String>();
 	
@@ -219,7 +221,8 @@ public class MainActivity extends Activity implements OnTabChangeListener{
 	}
     
     public void onClick() {
-        GetFromSheetTask task = new GetFromSheetTask();
+    	task = new GetFromSheetTask();
+    	//GetFromSheetTask task = new GetFromSheetTask();
         task.execute();
 
       }
@@ -298,22 +301,34 @@ public class MainActivity extends Activity implements OnTabChangeListener{
     	prefEditor.commit();
     }
     
-    private class GetFromSheetTask extends AsyncTask<Void, Void, JSONArray> {
+    private class GetFromSheetTask extends AsyncTask<Void, Void, Void> {
     	protected final ProgressDialog atualizando = new ProgressDialog(MainActivity.this);
     	protected Exception exception = null;
+    	protected String prefString;
     	
     	@Override
     	protected void onPreExecute(){
     		atualizando.setMessage("Atualizando...");
             atualizando.setCancelable(false);
+            atualizando.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancelar", new DialogInterface.OnClickListener() {
+				
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					System.out.println("click");
+					task.cancel(true);
+					//dialog.dismiss();
+				}
+			}  );
+            
             atualizando.show();
+            
+            //cancel(true);
+            
     	}
     	
     	@Override
-    	protected JSONArray doInBackground(Void... params) {
-    		JSONArray objects = null;
-    		
-    		
+    	protected Void doInBackground(Void... params) {
+    		//JSONArray objects = null;
     		try{
     		
                 HttpClient hc = new DefaultHttpClient();
@@ -322,10 +337,9 @@ public class MainActivity extends Activity implements OnTabChangeListener{
                 HttpResponse rp = hc.execute(get);
                 if(rp.getStatusLine().getStatusCode() == HttpStatus.SC_OK)
                 {
-                        String result = EntityUtils.toString(rp.getEntity());
-                        objects = new JSONArray(result);
-                        writeToFile(result);
-                        System.out.println(result);
+                        prefString = EntityUtils.toString(rp.getEntity());
+                        //objects = new JSONArray(prefString);
+                        System.out.println(prefString);
                         
                         }
     		}
@@ -334,13 +348,25 @@ public class MainActivity extends Activity implements OnTabChangeListener{
     			exception = e;
     			e.printStackTrace();
     			return null;
-    			
     		}
-        return objects;
+			return null;
     		
     }
+    	
     	@Override
-        protected void onPostExecute(JSONArray objects) {
+    	protected void onCancelled(){
+    		//loadFromFile();
+    		System.out.println("click");
+    		if (atualizando.isShowing()) {
+                atualizando.dismiss();
+			}
+    		Toast.makeText(MainActivity.this, "Cancelado", Toast.LENGTH_LONG).show();
+    	}
+    	
+    	@Override
+        protected void onPostExecute(Void object) {
+    		
+    		writeToFile(prefString);
     		
     		if (exception != null){
     			if (atualizando.isShowing()) {
@@ -351,55 +377,13 @@ public class MainActivity extends Activity implements OnTabChangeListener{
     		}
     		else{
     			clearArrays();
-        		for (int i = 0; i < objects.length(); i++) {
-        			try{
-        				
-        			
-        				JSONObject session = objects.getJSONObject(i);
-        				
-        				nomesAlmoco.add(session.getString("nomesalmoco"));
-        				segundaAlmoco.add(session.getString("segunda"));
-        				tercaAlmoco.add(session.getString("terca"));
-        				quartaAlmoco.add(session.getString("quarta"));
-        				quintaAlmoco.add(session.getString("quinta"));
-        				sextaAlmoco.add(session.getString("sexta"));
-        				
-        				if (session.has("nomesjantar")){
-        					nomesJantar.add(session.getString("nomesjantar"));
-        				}
-        				
-        				if (session.has("segundaj")){
-        					segundaJantar.add(session.getString("segundaj"));	
-        				}
-        				
-        				if (session.has("tercaj")){
-        					tercaJantar.add(session.getString("tercaj"));	
-        				}
-        				
-        				if (session.has("quartaj")){
-        					quartaJantar.add(session.getString("quartaj"));	
-        				}
-
-        				if (session.has("quintaj")){
-        					quintaJantar.add(session.getString("quintaj"));
-        				}
-
-        				if (session.has("sextaj")){
-        					sextaJantar.add(session.getString("sextaj"));
-        				}
-        				
-        			}
-        			
+        		loadFromFile();
         		
-        			catch(Exception e){
-        				e.printStackTrace();
-        			}
-            }
         		if (atualizando.isShowing()) {
                     atualizando.dismiss();
     			}
         		Toast.makeText(MainActivity.this, "Atualizado", Toast.LENGTH_LONG).show();
-        		setAdapters();
+        		//setAdapters();
     		}
     		
     		
