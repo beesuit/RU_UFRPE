@@ -303,6 +303,7 @@ public class MainActivity extends Activity implements OnTabChangeListener{
     
     private class GetFromSheetTask extends AsyncTask<Void, Void, Void> {
     	protected final ProgressDialog atualizando = new ProgressDialog(MainActivity.this);
+    	protected final ProgressDialog cancelando = new ProgressDialog(MainActivity.this);
     	protected Exception exception = null;
     	protected String prefString;
     	
@@ -316,6 +317,9 @@ public class MainActivity extends Activity implements OnTabChangeListener{
 				public void onClick(DialogInterface dialog, int which) {
 					System.out.println("click");
 					task.cancel(true);
+					cancelando.setMessage("Cancelando...");
+					cancelando.setCancelable(false);
+					cancelando.show();
 					//dialog.dismiss();
 				}
 			}  );
@@ -357,8 +361,9 @@ public class MainActivity extends Activity implements OnTabChangeListener{
     	protected void onCancelled(){
     		//loadFromFile();
     		System.out.println("click");
-    		if (atualizando.isShowing()) {
+    		if (atualizando.isShowing() || cancelando.isShowing()) {
                 atualizando.dismiss();
+                cancelando.dismiss();
 			}
     		Toast.makeText(MainActivity.this, "Cancelado", Toast.LENGTH_LONG).show();
     	}
@@ -366,7 +371,7 @@ public class MainActivity extends Activity implements OnTabChangeListener{
     	@Override
         protected void onPostExecute(Void object) {
     		
-    		writeToFile(prefString);
+    		
     		
     		if (exception != null){
     			if (atualizando.isShowing()) {
@@ -376,6 +381,7 @@ public class MainActivity extends Activity implements OnTabChangeListener{
     			Toast.makeText(MainActivity.this, "Sem Conexão", Toast.LENGTH_LONG).show();
     		}
     		else{
+    			writeToFile(prefString);
     			clearArrays();
         		loadFromFile();
         		
